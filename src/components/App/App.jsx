@@ -1,63 +1,28 @@
-import { nanoid } from 'nanoid';
-import { useState, useEffect, useRef } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Section from '../Section';
-import UserForm from '../UserForm';
-import Filter from '../Filter';
-import UserList from '../UserList';
-
+import ContactList from '../UserList';
+import ContactForm from '../UserForm';
+import { useSelector } from 'react-redux';
+import { getContacts } from 'redux/actions';
 import { AppContainer } from './App.styled';
+import { GlobalStyle } from '../BaseStyles.styled';
 
 export default function App() {
-  const [contacts, setContacts] = useState(
-    () => JSON.parse(localStorage.getItem('contacts')) ?? []
-  );
-  const [filter, setFilter] = useState('');
-  const mount = useRef(true);
-
-  useEffect(() => {
-    if (mount.current) {
-      mount.current = false;
-      return;
-    }
-
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
-
-  const onFormSubmit = ({ name, number }) => {
-    const normalizedName = name.toLowerCase();
-    const isUserExists = contacts.some(
-      contact => contact.name.toLowerCase() === normalizedName
-    );
-
-    if (isUserExists) return alert(`${name} is already in contacts`);
-
-    setContacts(prev => [{ name, number, id: nanoid() }, ...prev]);
-  };
-
-  const onContactDelete = id => {
-    setContacts(prev => prev.filter(contact => contact.id !== id));
-  };
-
-  const normalizedFilter = filter.toLowerCase();
-  const filteredContacts = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(normalizedFilter)
-  );
+  const contacts = useSelector(getContacts);
 
   return (
     <AppContainer>
-      <Section title="Phonebook">
-        <UserForm onSubmit={onFormSubmit} />
+      <Section title="Add contact">
+        <ContactForm />
       </Section>
-      <Section title="Contacts">
-        {contacts.length !== 0 ? (
-          <>
-            <Filter filter={filter} onChange={e => setFilter(e.target.value)} />
-            <UserList contacts={filteredContacts} onDelete={onContactDelete} />
-          </>
-        ) : (
-          <p>You have no contacts yet...</p>
-        )}
-      </Section>
+      {contacts.length > 0 && (
+        <Section title="Contacts">
+          <ContactList />
+        </Section>
+      )}
+      <ToastContainer />
+      <GlobalStyle />
     </AppContainer>
   );
 }
