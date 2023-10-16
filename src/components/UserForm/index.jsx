@@ -1,49 +1,44 @@
-import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
 import { useState } from 'react';
-import { Button, Input } from 'components/BaseStyles.styled';
-import { Form } from './UserForm.styled';
+import { useDispatch } from 'react-redux';
+import { addContact } from 'redux/contactsSlice';
+import { PatternFormat } from 'react-number-format';
+import { StyledForm } from './UserForm.styled';
 
-export default function UserForm({ onSubmit }) {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+export default function ContactForm() {
+  const dispatch = useDispatch();
+  const [tel, setTel] = useState('');
 
-  const onHandleSubmit = evt => {
-    evt.preventDefault();
-    onSubmit({ name, number });
-    setName('');
-    setNumber('');
+  const onFormSubmit = e => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const name = form.elements.name.value;
+    const numericTel = tel.replace(/\D/g, '');
+
+    if (!name || numericTel.length < 12) {
+      toast.warn('Please, enter valid information');
+      return;
+    }
+
+    dispatch(addContact(name, tel));
+    form.reset();
+    setTel('');
   };
 
   return (
-    <Form onSubmit={onHandleSubmit}>
-      <label>
-        <p>Name</p>
-        <Input
-          type="text"
-          name="name"
-          pattern="^[a-zA-Zа-яА-ЯіІїЇєЄґҐ]+(['\s\-a-zA-Zа-яА-ЯіІїЇєЄґҐ]*)*$"
-          title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
-          required
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-      </label>
-      <label>
-        <p>Number</p>
-        <Input
-          type="tel"
-          name="number"
-          title="Enter telephone number (e.g., 1234567890)"
-          required
-          value={number}
-          onChange={e => setNumber(e.target.value)}
-        />
-      </label>
-      <Button type="submit">Add contact</Button>
-    </Form>
+    <StyledForm onSubmit={onFormSubmit}>
+      <input type="text" name="name" placeholder="Name" />
+      <PatternFormat
+        format="+38 (###) ### ####"
+        allowEmptyFormatting
+        mask="_"
+        name="tel"
+        value={tel}
+        onValueChange={values => {
+          setTel(values.formattedValue);
+        }}
+      />
+      <button>Add</button>
+    </StyledForm>
   );
 }
-
-UserForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-};
