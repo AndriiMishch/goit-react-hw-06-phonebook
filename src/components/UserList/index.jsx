@@ -1,30 +1,31 @@
-import PropTypes from 'prop-types';
-import UserListItem from './UserListItem';
-import { ContactList } from './UserList.styled';
+import ContactFilter from 'components/Filter';
+import ContactListItem from './UserListItem';
+import { useSelector } from 'react-redux';
+import { getContacts, getFilterValue } from 'redux/actions';
+import { StyledList } from './UserList.styled';
 
-export default function UserList({ contacts, onDelete }) {
+export default function ContactList() {
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilterValue);
+
+  const visibleContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filter)
+  );
+
   return (
-    <ContactList>
-      {contacts.map(contact => (
-        <UserListItem
-          key={contact.id}
-          id={contact.id}
-          name={contact.name}
-          number={contact.number}
-          onDelete={onDelete}
-        />
-      ))}
-    </ContactList>
+    <>
+      <ContactFilter />
+      {visibleContacts.length > 0 ? (
+        <StyledList>
+          {visibleContacts.map(contact => (
+            <li key={contact.id}>
+              <ContactListItem contact={contact} />
+            </li>
+          ))}
+        </StyledList>
+      ) : (
+        <p>Sorry, no contacts found...</p>
+      )}
+    </>
   );
 }
-
-UserList.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  onDelete: PropTypes.func.isRequired,
-};
